@@ -10,7 +10,7 @@ class RedisRequires(RelationBase):
     @hook('{requires:redis}-relation-{joined,changed}')
     def changed(self):
         self.set_state('{relation_name}.connected')
-        if self.redis_hosts():
+        if self.redis_data():
             self.set_state('{relation_name}.available')
 
     @hook('{requires:redis}-relation-{broken,departed}')
@@ -19,20 +19,16 @@ class RedisRequires(RelationBase):
         self.remove_state('{relation_name}.available')
 
 
-    def get_remote_all(self, key, default=None):
-        '''Return a list of all values presented by remote units for key'''
-        values = []
-        for conversation in self.conversations():
-            for relation_id in conversation.relation_ids:
-                for unit in hookenv.related_units(relation_id):
-                    value = hookenv.relation_get(key,
-                                                 unit,
-                                                 relation_id) or default
-                    if value:
-                        values.append(value)
-        return list(set(values))
-
-
-    def redis_hosts(self):
-        return self.get_remote_all('private-address')
-
+    def redis_data(self):
+        """
+        Get the connection details.
+        """
+        data = {
+            'host': self.host(),
+            'port': self.port(),
+            'database': self.database(),
+            'password': self.password(),
+        }
+        if all(data.values()):
+            return data
+        return None
