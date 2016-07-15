@@ -1,0 +1,4 @@
+name: redis
+summary: Reactive (requires) interface for Redis.
+version: 1
+repo: https://github.com/jamesbeedy/interface-redis
