@@ -12,7 +12,7 @@ def write_redis_configs(redis):
     """
     status_set('maintenance', 'Configuring Redis cache')
 
-    redis_db = redis_data()[0]
+    redis_db = redis.redis_data()[0]
 
     render('redis.rb',
            target='/srv/webapp/config/redis.rb',
