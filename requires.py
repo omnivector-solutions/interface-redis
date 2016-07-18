@@ -22,7 +22,7 @@ class RedisRequires(RelationBase):
 
     def redis_data(self):
         """
-        Get the connection details.
+        Return redis connection details.
         """
         redis_data_lst = []
         redis_data_dct = {}
