@@ -25,10 +25,12 @@ class RedisRequires(RelationBase):
         Get the connection details.
         """
         redis_data_lst = []
+        redis_data_dct = {}
         for conv in self.conversations():
-            redis_data.append({
-                'private_address': conv.get_remote('private-address'),
-                'port': conv.get_remote('port'),
-                'database': conv.get_remote('database'),
-                'password': conv.get_remote('password')})
+            if conv.get_remote('password'):
+                redis_data_dct['password'] = conv.get_remote('password')
+            redis_data_dct['port'] = conv.get_remote('port')
+            redis_data_dct['private_address'] = \
+                conv.get_remote('private-address')
+            redis_data_lst.append(redis_data_dct)
         return redis_data_lst
