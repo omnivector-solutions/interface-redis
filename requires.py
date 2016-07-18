@@ -10,7 +10,8 @@ class RedisRequires(RelationBase):
     @hook('{requires:redis}-relation-{joined,changed}')
     def changed(self):
         self.set_state('{relation_name}.connected')
-        if self.redis_data():
+        conv = self.conversation()
+        if conv.get_remote('port'):
             self.set_state('{relation_name}.available')
 
     @hook('{requires:redis}-relation-{broken,departed}')
@@ -23,12 +24,11 @@ class RedisRequires(RelationBase):
         """
         Get the connection details.
         """
-        data = {
-            'host': self.host(),
-            'port': self.port(),
-            'database': self.database(),
-            'password': self.password(),
-        }
-        if all(data.values()):
-            return data
-        return None
+        redis_data_lst = []
+        for conv in self.conversations():
+            redis_data.append({
+                'private_address': conv.get_remote('private-address'),
+                'port': conv.get_remote('port'),
+                'database': conv.get_remote('database'),
+                'password': conv.get_remote('password')})
+        return redis_data_lst
