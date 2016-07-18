@@ -8,7 +8,8 @@ To use this interface in your layer, you can do something like this:
 @when('redis.available')
 @when_not('webapp.redis.configured')
 def write_redis_configs(redis):
-    # Write out redis config params
+    """Write out redis config params
+    """
     status_set('maintenance', 'Configuring Redis cache')
 
     redis_db = redis_data()[0]
