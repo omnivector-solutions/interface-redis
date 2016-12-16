@@ -25,7 +25,8 @@ class RedisRequires(RelationBase):
         """
         conv = self.conversation()
         data = {'host': conv.get_remote('host'),
-                'port': conv.get_remote('port')}
+                'port': conv.get_remote('port'),
+                'uri': conv.get_remote('uri')}
         if conv.get_remote('password'):
             data['password'] = conv.get_remote('password')
         return data
