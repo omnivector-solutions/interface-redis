@@ -6,7 +6,6 @@ from charms.reactive import scopes
 
 class RedisRequires(RelationBase):
     scope = scopes.UNIT
-    auto_accessors = ['host', 'port', 'password']
 
     @hook('{requires:redis}-relation-{joined,changed}')
     def changed(self):
@@ -25,4 +24,8 @@ class RedisRequires(RelationBase):
         Return redis connection details.
         """
         conv = self.conversation()
-        return {k: conv.get_remote(k) for k in self.auto_accessors}
+        data = {'host': conv.get_remote('host'),
+                'port': conv.get_remote('port')}
+        if conv.get_remote('password'):
+            data['password'] = conv.get_remote('password')
+        return data

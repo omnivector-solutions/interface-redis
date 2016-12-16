@@ -15,12 +15,13 @@ class ProvidesRedis(RelationBase):
     def broken(self):
         self.remove_state('{relation_name}.connected')
 
-    def configure(self, port, password):
+    def configure(self, port, password=None):
         relation_info = {
             'host': hookenv.unit_get('private-address'),
-            'port': port,
-            'password': password
+            'port': port
         }
+        if password:
+            relation_info['password'] = password
 
         self.set_remote(**relation_info)
         self.set_state('{relation_name}.configured')
