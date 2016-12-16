@@ -22,6 +22,11 @@ class ProvidesRedis(RelationBase):
         }
         if password:
             relation_info['password'] = password
+            uri = 'redis://:{password}@{host}:{port}'.format(**relation_info)
+        else:
+            uri = 'redis://{host}:{port}'.format(**relation_info)
+
+        relation_info['uri'] = uri
 
         self.set_remote(**relation_info)
         self.set_state('{relation_name}.configured')
