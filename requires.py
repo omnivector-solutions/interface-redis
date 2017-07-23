@@ -16,8 +16,9 @@ class RedisRequires(RelationBase):
 
     @hook('{requires:redis}-relation-{broken,departed}')
     def broken(self):
-        self.remove_state('{relation_name}.connected')
-        self.remove_state('{relation_name}.available')
+        conv = self.conversation()
+        conv.remove_state('{relation_name}.connected')
+        conv.remove_state('{relation_name}.available')
 
     def redis_data(self):
         """
