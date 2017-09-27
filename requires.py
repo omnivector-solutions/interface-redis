@@ -9,10 +9,10 @@ class RedisRequires(RelationBase):
 
     @hook('{requires:redis}-relation-{joined,changed}')
     def changed(self):
-        self.set_state('{relation_name}.connected')
         conv = self.conversation()
+        conv.set_state('{relation_name}.connected')
         if conv.get_remote('port'):
-            self.set_state('{relation_name}.available')
+            conv.set_state('{relation_name}.available')
 
     @hook('{requires:redis}-relation-{broken,departed}')
     def broken(self):
