@@ -45,12 +45,15 @@ class RedisRequires(Endpoint):
                 if not (host and port):
                     continue
                 ctxt = {}
-                if password:
-                    ctxt['password'] = password
                 ctxt['host'] = host
                 ctxt['port'] = port
                 ctxt['relation_id'] = relation.relation_id
                 ctxt['unit_name'] = unit.unit_name
+                if password:
+                    ctxt['password'] = password
+                    ctxt['uri'] = 'redis://:{password}@{host}:{port}'.format(**ctxt)
+                else:
+                    ctxt['uri'] = 'redis://{host}:{port}'.format(**ctxt)
                 units_data.append(ctxt)
         return units_data
 
