@@ -1,24 +1,18 @@
-from charms.reactive import when_any, when_not
+from charms.reactive import when, when_not
 from charms.reactive import set_flag, clear_flag
 from charms.reactive import Endpoint
 
 
 class RedisRequires(Endpoint):
-    @when_any('endpoint.{relation_name}.changed.host',
-              'endpoint.{relation_name}.changed.port',
-              'endpoint.{relation_name}.changed.password')
-    def relation_state_modified(self):
-        # Detect changes to the host or port field on any remote unit
-        # and translate that into the host-port flag. Then, clear the
-        # changed field flags so that we can detect further changes.
-        set_flag(self.flag('endpoint.{relation_name}.host-port'))
-        clear_flag(self.flag('endpoint.{relation_name}.changed.host'))
-        clear_flag(self.flag('endpoint.{relation_name}.changed.port'))
-        clear_flag(self.flag('endpoint.{relation_name}.changed.password'))
 
-    @when_not('endpoint.{relation_name}.joined')
+    @when('endpoint.{endpoint_name}.changed')
+    def changed(self):
+        if any(unit.received['port'] for unit in self.all_units):
+            set_flag(self.flag('{endpoint_name}.available'))
+
+    @when_not('endpoint.{endpoint_name}.joined')
     def broken(self):
-        clear_flag(self.flag('endpoint.{relation_name}.host-port'))
+        clear_flag(self.flag('{endpoint_name}.available'))
 
     def relation_data(self):
         """
@@ -36,24 +30,21 @@ class RedisRequires(Endpoint):
                 },
             ]
         """
-        units_data = []
+        services = {}
         for relation in self.relations:
+            service_name = relation.application_name
+            service = services.setdefault(service_name, {
+                'service_name': service_name,
+                'hosts': [],
+            })
             for unit in relation.units:
-                host = unit.received['host']
-                port = unit.received['port']
+                host = unit.received_raw['host']
+                port = unit.received_raw['port']
                 password = unit.received['password']
-                if not (host and port):
-                    continue
-                ctxt = {}
-                ctxt['host'] = host
-                ctxt['port'] = port
-                ctxt['relation_id'] = relation.relation_id
-                ctxt['unit_name'] = unit.unit_name
-                if password:
-                    ctxt['password'] = password
-                    ctxt['uri'] = 'redis://:{password}@{host}:{port}'.format(**ctxt)
-                else:
-                    ctxt['uri'] = 'redis://{host}:{port}'.format(**ctxt)
-                units_data.append(ctxt)
-        return units_data
+                if host and port:
+                    ctxt = {'host': host, 'port': port}
+                    if password:
+                        ctxt['password'] = password
 
+                    service['hosts'].append(ctxt)
+        return [s for s in services.values() if s['hosts']]
