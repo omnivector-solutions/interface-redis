@@ -8,11 +8,11 @@ class RedisRequires(Endpoint):
     @when('endpoint.{endpoint_name}.changed')
     def changed(self):
         if any(unit.received['port'] for unit in self.all_units):
-            set_flag(self.flag('{endpoint_name}.available'))
+            set_flag(self.expand_name('{endpoint_name}.available'))
 
     @when_not('endpoint.{endpoint_name}.joined')
     def broken(self):
-        clear_flag(self.flag('{endpoint_name}.available'))
+        clear_flag(self.expand_name('{endpoint_name}.available'))
 
     def relation_data(self):
         """
