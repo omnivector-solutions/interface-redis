@@ -1,4 +1,4 @@
-from charms.reactive import when, when_not
+from charms.reactive import when
 from charms.reactive import set_flag, clear_flag
 from charms.reactive import Endpoint
 
@@ -8,11 +8,11 @@ class RedisRequires(Endpoint):
     @when('endpoint.{endpoint_name}.changed')
     def changed(self):
         if any(unit.received['port'] for unit in self.all_units):
-            set_flag(self.expand_name('{endpoint_name}.available'))
+            set_flag('endpoint.{endpoint_name}.available')
 
-    @when_not('endpoint.{endpoint_name}.joined')
+    @when('endpoint.{endpoint_name}.broken')
     def broken(self):
-        clear_flag(self.expand_name('{endpoint_name}.available'))
+        set_flag('endpoint.{endpoint_name}.broken')
 
     def relation_data(self):
         """

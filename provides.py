@@ -1,4 +1,4 @@
-from charms.reactive import when, when_not
+from charms.reactive import when
 from charms.reactive import set_flag, clear_flag
 from charms.reactive import Endpoint
 
@@ -7,11 +7,11 @@ class RedisProvides(Endpoint):
 
     @when('endpoint.{endpoint_name}.joined')
     def joined(self):
-        set_flag(self.expand_name('{endpoint_name}.available'))
+        set_flag('endpoint.{endpoint_name}.available')
 
-    @when_not('endpoint.{endpoint_name}.joined')
+    @when('endpoint.{endpoint_name}.broken')
     def broken(self):
-        clear_flag(self.expand_name('{endpoint_name}.available'))
+        set_flag('endpoint.{endpoint_name}.broken')
 
     def configure(self, host, port, password=None):
         """
@@ -22,4 +22,4 @@ class RedisProvides(Endpoint):
             ctxt['password'] = password
  
         for relation in self.relations:
-            relation.to_publish.update(ctxt)
+            relation.to_publish_raw.update(ctxt)
