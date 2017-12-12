@@ -1,18 +1,23 @@
-from charms.reactive import when
+from charms.reactive import when, when_not
 from charms.reactive import set_flag, clear_flag
 from charms.reactive import Endpoint
 
 
 class RedisRequires(Endpoint):
 
+    @when('endpoint.{endpoint_name}.joined')
+    def joined(self):
+        if any(unit.received['port'] for unit in self.all_units):
+            set_flag(self.expand_name('endpoint.{endpoint_name}.available'))
+
     @when('endpoint.{endpoint_name}.changed')
     def changed(self):
         if any(unit.received['port'] for unit in self.all_units):
-            set_flag('endpoint.{endpoint_name}.available')
+            set_flag(self.expand_name('endpoint.{endpoint_name}.available'))
 
-    @when('endpoint.{endpoint_name}.broken')
+    @when_not('endpoint.{endpoint_name}.joined')
     def broken(self):
-        set_flag('endpoint.{endpoint_name}.broken')
+        clear_flag(self.expand_name('endpoint.{endpoint_name}.available'))
 
     def relation_data(self):
         """
@@ -38,8 +43,8 @@ class RedisRequires(Endpoint):
                 'hosts': [],
             })
             for unit in relation.units:
-                host = unit.received_raw['host']
-                port = unit.received_raw['port']
+                host = unit.received['host']
+                port = unit.received['port']
                 password = unit.received['password']
                 if host and port:
                     ctxt = {'host': host, 'port': port}
