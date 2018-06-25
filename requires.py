@@ -1,34 +1,55 @@
-from charmhelpers.core import hookenv
-from charms.reactive import hook
-from charms.reactive import RelationBase
-from charms.reactive import scopes
+from charms.reactive import when, when_not
+from charms.reactive import set_flag, clear_flag
+from charms.reactive import Endpoint
 
 
-class RedisRequires(RelationBase):
-    scope = scopes.UNIT
+class RedisRequires(Endpoint):
 
-    @hook('{requires:redis}-relation-{joined,changed}')
+    @when('endpoint.{endpoint_name}.joined')
+    def joined(self):
+        if any(unit.received['port'] for unit in self.all_units):
+            set_flag(self.expand_name('endpoint.{endpoint_name}.available'))
+
+    @when('endpoint.{endpoint_name}.changed')
     def changed(self):
-        conv = self.conversation()
-        conv.set_state('{relation_name}.connected')
-        if conv.get_remote('port'):
-            conv.set_state('{relation_name}.available')
+        if any(unit.received['port'] for unit in self.all_units):
+            set_flag(self.expand_name('endpoint.{endpoint_name}.available'))
 
-    @hook('{requires:redis}-relation-{broken,departed}')
+    @when_not('endpoint.{endpoint_name}.joined')
     def broken(self):
-        conv = self.conversation()
-        conv.remove_state('{relation_name}.connected')
-        conv.remove_state('{relation_name}.available')
-        conv.set_state('{relation_name}.broken')
+        clear_flag(self.expand_name('endpoint.{endpoint_name}.available'))
 
-    def redis_data(self):
+    def relation_data(self):
         """
-        Return redis connection details.
+        Get the list of the relation info for each unit.
+        Returns a list of dicts, where each dict contains the host (address)
+        and the port (as a string), as well as
+        the relation ID and remote unit name that provided the site.
+        For example::
+            [
+                {
+                    'host': '10.1.1.1',
+                    'port': '80',
+                    'relation_id': 'reverseproxy:1',
+                    'unit_name': 'myblog/0',
+                },
+            ]
         """
-        conv = self.conversation()
-        data = {'host': conv.get_remote('host'),
-                'port': conv.get_remote('port'),
-                'uri': conv.get_remote('uri')}
-        if conv.get_remote('password'):
-            data['password'] = conv.get_remote('password')
-        return data
+        services = {}
+        for relation in self.relations:
+            service_name = relation.application_name
+            service = services.setdefault(service_name, {
+                'service_name': service_name,
+                'hosts': [],
+            })
+            for unit in relation.units:
+                host = unit.received['host']
+                port = unit.received['port']
+                password = unit.received['password']
+                if host and port:
+                    ctxt = {'host': host, 'port': port}
+                    if password:
+                        ctxt['password'] = password
+
+                    service['hosts'].append(ctxt)
+        return [s for s in services.values() if s['hosts']]
