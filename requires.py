@@ -14,6 +14,7 @@ class RedisRequires(Endpoint):
     def changed(self):
         if any(unit.received['port'] for unit in self.all_joined_units):
             set_flag(self.expand_name('available'))
+        clear_flag(self.expand_name('changed'))
 
     @when_not('endpoint.{endpoint_name}.joined')
     def broken(self):
