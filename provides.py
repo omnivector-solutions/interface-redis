@@ -1,5 +1,3 @@
-from charms.reactive import when, when_not
-from charms.reactive import set_flag, clear_flag
 from charms.reactive import Endpoint
 
 
@@ -12,6 +10,5 @@ class RedisProvides(Endpoint):
         ctxt = {'host': host, 'port': port}
         if password:
             ctxt['password'] = password
- 
         for relation in self.relations:
             relation.to_publish.update(ctxt)

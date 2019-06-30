@@ -50,4 +50,3 @@ class RedisRequires(Endpoint):
 
                 units_data.append(ctxt)
         return units_data
-
